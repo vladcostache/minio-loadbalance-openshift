@@ -1,42 +1,37 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  # This name uniquely identifies the Deployment
   name: minio
 spec:
   selector:
     matchLabels:
-      app: minio # has to match .spec.template.metadata.labels
+      app: minio 
   strategy:
-    # Specifies the strategy used to replace old Pods by new ones
-    # Refer: https://kubernetes.io/docs/concepts/workloads/controllers/deployment/#strategy
     type: Recreate
+    activeDeadlineSeconds: 21600
   template:
     metadata:
       labels:
-        # This label is used as a selector in Service definition
         app: minio
     spec:
-      # Volumes used by this deployment
       volumes:
       - name: data
-        # This volume is based on PVC
         persistentVolumeClaim:
             claimName: "minio-pv-claim"
       containers:
+        
       - name: minio1
-        # Volume mounts for this container
-        volumeMounts:
-        # Volume 'data' is mounted to path '/data'
-        - name: data 
-          mountPath: "/data"
-        # Pulls the lastest Minio image from Docker Hub
         image: minio/minio:RELEASE.2019-10-12T01-39-57Z
+        volumeMounts:
+        - name: data 
+          mountPath: "/data" 
         args:
         - server
         - /data
         - --address 
         - ":9001"
+        ports:
+        - containerPort: 9001
         resources:
             limits:
               memory: 300Mi
@@ -47,42 +42,40 @@ spec:
         env:
         # MinIO access key and secret key
         - name: MINIO_ACCESS_KEY
-          value: "minio"
+          valueFrom:
+                secretKeyRef:
+                  key: minioAccessKey
+                  name: minio
         - name: MINIO_SECRET_KEY
-          value: "minio123"
-        ports:
-        - containerPort: 9001
-        # Readiness probe detects situations when MinIO server instance
-        # is not ready to accept traffic. Kubernetes doesn't forward
-        # traffic to the pod while readiness checks fail.
+          valueFrom:
+                secretKeyRef:
+                  key: minioSecretKey
+                  name: minio
         readinessProbe:
           httpGet:
             path: /minio/health/ready
             port: 9001
           initialDelaySeconds: 120
           periodSeconds: 20
-        # Liveness probe detects situations where MinIO server instance
-        # is not working properly and needs restart. Kubernetes automatically
-        # restarts the pods if liveness checks fail.
         livenessProbe:
           httpGet:
             path: /minio/health/live
             port: 9001
           initialDelaySeconds: 120
           periodSeconds: 20
+
       - name: minio2
-        # Volume mounts for this container
-        volumeMounts:
-        # Volume 'data' is mounted to path '/data'
-        - name: data 
-          mountPath: "/data"
-        # Pulls the lastest Minio image from Docker Hub
         image: minio/minio:RELEASE.2019-10-12T01-39-57Z
+        volumeMounts:
+        - name: data 
+          mountPath: "/data" 
         args:
         - server
         - /data
         - --address 
         - ":9002"
+        ports:
+        - containerPort: 9002
         resources:
             limits:
               memory: 300Mi
@@ -93,42 +86,40 @@ spec:
         env:
         # MinIO access key and secret key
         - name: MINIO_ACCESS_KEY
-          value: "minio"
+          valueFrom:
+                secretKeyRef:
+                  key: minioAccessKey
+                  name: minio
         - name: MINIO_SECRET_KEY
-          value: "minio123"
-        ports:
-        - containerPort: 9002
-        # Readiness probe detects situations when MinIO server instance
-        # is not ready to accept traffic. Kubernetes doesn't forward
-        # traffic to the pod while readiness checks fail.
+          valueFrom:
+                secretKeyRef:
+                  key: minioSecretKey
+                  name: minio
         readinessProbe:
           httpGet:
             path: /minio/health/ready
             port: 9002
           initialDelaySeconds: 120
           periodSeconds: 20
-        # Liveness probe detects situations where MinIO server instance
-        # is not working properly and needs restart. Kubernetes automatically
-        # restarts the pods if liveness checks fail.
         livenessProbe:
           httpGet:
             path: /minio/health/live
             port: 9002
           initialDelaySeconds: 120
           periodSeconds: 20
+
       - name: minio3
-        # Volume mounts for this container
-        volumeMounts:
-        # Volume 'data' is mounted to path '/data'
-        - name: data 
-          mountPath: "/data"
-        # Pulls the lastest Minio image from Docker Hub
         image: minio/minio:RELEASE.2019-10-12T01-39-57Z
+        volumeMounts:
+        - name: data 
+          mountPath: "/data" 
         args:
         - server
         - /data
         - --address 
-        - ":9003" 
+        - ":9003"
+        ports:
+        - containerPort: 9003
         resources:
             limits:
               memory: 300Mi
@@ -139,42 +130,40 @@ spec:
         env:
         # MinIO access key and secret key
         - name: MINIO_ACCESS_KEY
-          value: "minio"
+          valueFrom:
+                secretKeyRef:
+                  key: minioAccessKey
+                  name: minio
         - name: MINIO_SECRET_KEY
-          value: "minio123"
-        ports:
-        - containerPort: 9003
-        # Readiness probe detects situations when MinIO server instance
-        # is not ready to accept traffic. Kubernetes doesn't forward
-        # traffic to the pod while readiness checks fail.
+          valueFrom:
+                secretKeyRef:
+                  key: minioSecretKey
+                  name: minio
         readinessProbe:
           httpGet:
             path: /minio/health/ready
             port: 9003
           initialDelaySeconds: 120
           periodSeconds: 20
-        # Liveness probe detects situations where MinIO server instance
-        # is not working properly and needs restart. Kubernetes automatically
-        # restarts the pods if liveness checks fail.
         livenessProbe:
           httpGet:
             path: /minio/health/live
             port: 9003
           initialDelaySeconds: 120
           periodSeconds: 20
+
       - name: minio4
-        # Volume mounts for this container
-        volumeMounts:
-        # Volume 'data' is mounted to path '/data'
-        - name: data 
-          mountPath: "/data"
-        # Pulls the lastest Minio image from Docker Hub
         image: minio/minio:RELEASE.2019-10-12T01-39-57Z
+        volumeMounts:
+        - name: data 
+          mountPath: "/data" 
         args:
         - server
         - /data
         - --address 
         - ":9004"
+        ports:
+        - containerPort: 9004
         resources:
             limits:
               memory: 300Mi
@@ -185,29 +174,32 @@ spec:
         env:
         # MinIO access key and secret key
         - name: MINIO_ACCESS_KEY
-          value: "minio"
+          valueFrom:
+                secretKeyRef:
+                  key: minioAccessKey
+                  name: minio
         - name: MINIO_SECRET_KEY
-          value: "minio123"
-        ports:
-        - containerPort: 9004
-        # Readiness probe detects situations when MinIO server instance
-        # is not ready to accept traffic. Kubernetes doesn't forward
-        # traffic to the pod while readiness checks fail.
+          valueFrom:
+                secretKeyRef:
+                  key: minioSecretKey
+                  name: minio
         readinessProbe:
           httpGet:
             path: /minio/health/ready
             port: 9004
           initialDelaySeconds: 120
           periodSeconds: 20
-        # Liveness probe detects situations where MinIO server instance
-        # is not working properly and needs restart. Kubernetes automatically
-        # restarts the pods if liveness checks fail.
         livenessProbe:
           httpGet:
             path: /minio/health/live
             port: 9004
           initialDelaySeconds: 120
-          periodSeconds: 
+          periodSeconds: 20
+
+
+
+
+
 
   # volumeClaimTemplates:
   # - metadata:
